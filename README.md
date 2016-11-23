@@ -1,2 +1,2 @@
 # Rest.php
-Terse mvc  framework with Restful API
+mvc framework with Restful API
