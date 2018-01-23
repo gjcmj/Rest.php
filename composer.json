@@ -1,0 +1,25 @@
+{
+    "name": "gjcmj/rest",
+
+    "description": "Restful Api Framework",
+
+    "authors": [
+        {
+            "name": "ky",
+            "email": "kylin.j@gmail.com"
+        }
+    ],
+
+    "require": {
+        "noahbuscher/macaw":"dev-master"
+    },
+
+    "autoload" :{
+        "psr-4": {
+            "Rest\\" : "support/",
+            "App\\": "app/"
+        },
+
+        "files": ["support/Common.php"]
+    }
+}
