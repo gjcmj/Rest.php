@@ -7,16 +7,9 @@
  */
 
 /**
- * 公共函数库
+ * 公共助手函数库
  * 每次请求都会载入
  */
-
-if(!function_exists('parse_error')) {
-
-    function parse_error($message) {
-        return [substr($message, 0, 8), substr($message, 9)];
-    }
-}
 
 /**
  * throw exception
@@ -27,7 +20,7 @@ if(!function_exists('parse_error')) {
 if(!function_exists('throw_exception')) {
 
     function throw_exception($message) {
-        list($code, $msg) = parse_error($message);
+        list($code, $msg) = [substr($message, 0, 8), substr($message, 9)];
         throw new ErrorException($msg, $code);
     }
 }
@@ -54,6 +47,6 @@ if(!function_exists('getMillisecond')) {
 
     function getMillisecond() {
         list($t1, $t2) = explode(' ', microtime());
-        return (float)sprintf('%.0f',(floatval($t1)+floatval($t2))*1000);
+        return (float) sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
     }
 }

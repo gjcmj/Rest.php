@@ -1,7 +1,11 @@
 {
-    "name": "gjcmj/rest",
+    "name": "gjcmj/Rest.php",
 
     "description": "Restful Api Framework",
+
+    "version": "1.0.0",
+
+    "license": "BSD-4-Clause",
 
     "authors": [
         {
@@ -10,16 +14,12 @@
         }
     ],
 
-    "require": {
-        "noahbuscher/macaw":"dev-master"
-    },
-
     "autoload" :{
         "psr-4": {
             "Rest\\" : "support/",
             "App\\": "app/"
         },
 
-        "files": ["support/Common.php"]
+        "files": ["support/Helpers/common.php"]
     }
 }

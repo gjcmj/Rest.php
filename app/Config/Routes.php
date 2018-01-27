@@ -1,11 +1,5 @@
 <?php
-use NoahBuscher\Macaw\Macaw;
 
-Macaw::get('/', 'App\Controllers\demo@index');
+$router->get('/(:id?)', 'App\Controllers\Demo@index');
 
-Macaw::error(function() {
-    echo '404 :: Not Found';
-    //throw_exception(Errors::BAD_REQUEST);
-});
-
-Macaw::dispatch();
+$router->get('/search/(:keyword?)', 'App\Controllers\Search@index');

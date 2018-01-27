@@ -9,20 +9,47 @@
 
 /**
  * Services
+ *
+ * Dependency injection container
+ * 支持延迟载入、自动绑定、是否单例实例
  * 
  * @package Rest
  * @author ky
  */
 class Services {
 
+    /**
+     * 绑定的注册服务
+     *
+     * @var array
+     */
     protected static $_registry = [];
 
+    /**
+     * 共享的实例(singleton)
+     *
+     * @var array
+     */
     protected static $_instances = [];
 
+    /**
+     * Bind 
+     *
+     * @param String $name
+     * @param Mix $resolver
+     * @return void
+     */
     public static function bind($name, $resolver) {
         static::$_registry[$name] = $resolver;
     }
 
+    /**
+     * Get Instance
+     *
+     * @param String $name
+     * @param array $params
+     * @return mixed
+     */
     public static function __callStatic($name, $params) {
         $share = $params[0] ?? true;
 
@@ -33,10 +60,15 @@ class Services {
         return self::make($name, $share);
     }
 
+    /**
+     * Make Instance
+     *
+     * @param String $name
+     * @param bool $share
+     * @return array
+     */
     protected static function make($name, $share = true) {
-        if(empty($className = static::$_registry[$name])) {
-            throw new \Exception('Alias does not exist in the Services bind.');
-        }
+        $className = static::$_registry[$name] ?? $name;
 
         if($className instanceof \Closure) {
             return $share ? static::$_instances[$name] = $className() : $className();
@@ -44,43 +76,41 @@ class Services {
 
         $reflector = new \ReflectionClass($className);
 
-        // 检查类是否可实例化, 排除抽象类abstract和对象接口interface
         if (!$reflector->isInstantiable()) {
-            throw new \Exception("Can't instantiate this.");
+            throw new \ReflectionException("Can't instantiate $className .");
         }
 
-        /** @var ReflectionMethod $constructor 获取类的构造函数 */
         $constructor = $reflector->getConstructor();
 
-        // 若无构造函数，直接实例化并返回
         if (is_null($constructor)) {
             return $share ? static::$_instances[$name] = new $className : new $className;
         }
 
-        // 取构造函数参数,通过 ReflectionParameter 数组返回参数列表
         $parameters = $constructor->getParameters();
 
-        // 递归解析构造函数的参数
         $dependencies = self::getDependencies($parameters, $share);
 
-        // 创建一个类的新实例，给出的参数将传递到类的构造函数。
         return $share ? static::$_instances[$name] = $reflector->newInstanceArgs($dependencies) :
             $reflector->newInstanceArgs($dependencies);
     }
 
+    /**
+     * Get Dependencies
+     *
+     * @param array $parameters
+     * @param bool $share
+     * @return array
+     */
     protected static function getDependencies($parameters, $share) {
         $dependencies = [];
 
         foreach ($parameters as $parameter) {
-            /** @var ReflectionClass $dependency */
             $dependency = $parameter->getClass();
 
             if (is_null($dependency)) {
-                // 是变量,有默认值则设置默认值
                 !$parameter->isDefaultValueAvailable() ?? $dependencies[] = $parameter->getDefaultValue();
             } else {
-                // 是一个类，递归解析
-                $dependencies[] = $self::make($dependency->name, $share);
+                $dependencies[] = self::make($dependency->name, $share);
             }
         }
 

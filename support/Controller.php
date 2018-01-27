@@ -16,6 +16,18 @@
 class Controller {
 
     /**
+     * Request Object
+     * @var Http\Request
+     */
+    protected $request;
+
+    /**
+     * Response Object
+     * @var Http\Response
+     */
+    protected $response;
+
+    /**
      * Construct
      */
     public function __construct(\Rest\Http\Request $request, \Rest\Http\Response $response) {
