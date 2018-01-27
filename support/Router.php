@@ -60,20 +60,20 @@ class Router {
      *
      * @return void
      */
-    public function __call($method, $params) {
-        if($method == 'match') {
-            $uri = $params[1];
-            $methods = array_map('strtoupper', $params[0]);
-            $callback = $params[2];
-        } else {
-            $uri = $params[0];
-            $methods = strtoupper($method);
-            $callback = $params[1];
+        public function __call($method, $params) {
+            if($method == 'match') {
+                $uri = $params[1];
+                $methods = array_map('strtoupper', $params[0]);
+                $callback = $params[2];
+            } else {
+                $uri = $params[0];
+                $methods = strtoupper($method);
+                $callback = $params[1];
+            }
+            array_push($this->routes, $uri);
+            array_push($this->methods, $methods);
+            array_push($this->callbacks, $callback);
         }
-        array_push($this->routes, $uri);
-        array_push($this->methods, $methods);
-        array_push($this->callbacks, $callback);
-    }
 
     /**
      * Merge Placeholder
@@ -106,11 +106,7 @@ class Router {
             $route_pos = array_keys($this->routes, $uri);
 
             foreach ($route_pos as $route) {
-                if((is_array($this->methods[$route]) && in_array($method, $this->methods[$route])) 
-                    || $this->methods[$route] == $method || $this->methods[$route] == 'ANY') {
-
-                    $result = explode('@',$this->callbacks[$route]);
-                    array_push($result, []);
+                if($result = $this->parseCallback($route, $method, [])) {
                     return $result;
                 }
             }
@@ -118,24 +114,40 @@ class Router {
             foreach($this->routes as $k => $v) {
                 if (strpos($v, ':') !== false) {
                     $route = str_replace($placeholders, $replaces, $v);
+
+                    // 可选路由参数
                     if(strpos($route, '?') !== false) {
                         $route = str_replace('?', '|\s?', $route);
                     }
                 }
 
-                if (preg_match('#^' . $route . '$#', $uri, $matched)) {
-                    if((is_array($this->methods[$k]) && in_array($method, $this->methods[$k])) 
-                        || $this->methods[$k] == $method || $this->methods[$k] == 'ANY') {
-
-                        array_shift($matched);
-                        $result = explode('@', $this->callbacks[$k]);
-                        array_push($result, $matched);
-                        return $result;
-                    }
+                if (preg_match('#^' . $route . '$#', $uri, $matched) && ($result = $this->parseCallback($k, $method, $matched))) {
+                    return $result;
                 }
             }
         }
 
         throw new \ErrorException("Router [$uri] not found", 404);
+    }
+
+    /**
+     * Parse Callback
+     *
+     * @param int    $index
+     * @param String $method
+     * @param array  $params
+     * @return mixed
+     */
+    protected function parseCallback($index, $method, $params) {
+        if((is_array($this->methods[$index]) && in_array($method, $this->methods[$index])) 
+            || $this->methods[$index] == $method || $this->methods[$index] == 'ANY') {
+
+            array_shift($params);
+            $result = explode('@',$this->callbacks[$index]);
+            array_push($result, $params);
+            return $result;
+        }
+
+        return false;
     }
 }
