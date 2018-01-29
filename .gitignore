@@ -1,0 +1,5 @@
+# composer
+vendor/
+.git/
+*.lock
+.DS_Store
