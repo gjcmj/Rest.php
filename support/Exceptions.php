@@ -23,6 +23,13 @@ class Exceptions {
     protected $response;
 
     /**
+     * Custom response format
+     *
+     * @var Callable
+     */
+    protected $outputCallback;
+
+    /**
      * Construct
      *
      * @param \Rest\Http\Response
@@ -36,7 +43,9 @@ class Exceptions {
      *
      * @return void
      */
-    public function initialize() {
+    public function initialize(Callable $callback) {
+        $this->outputCallback = $callback;
+
         set_exception_handler([$this, 'exceptionHandler']);
 
         set_error_handler([$this, 'errorHandler']);
@@ -65,7 +74,7 @@ class Exceptions {
 
         $this->response
             ->setStatus($statusCode)
-            ->write($message);
+            ->write($this->outputCallback ? $this->outputCallback($code, $message) : $message);
 
         exit(1);
     }
