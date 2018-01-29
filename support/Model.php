@@ -40,7 +40,7 @@ class Model {
      */
     public function connection($name, $type) {
         if(!$this->config) {
-            $this->config = require BASE_PATH . '../app/Config/Database/' . ENVIRONMENT  . '.php';
+            $this->config = require CONFIG_PATH . '/Database/' . ENVIRONMENT  . '.php';
         }
 
         if (!empty($this->db[$type][$name])) {

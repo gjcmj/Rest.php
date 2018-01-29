@@ -22,18 +22,12 @@ class Rest {
     private $app;
 
     /**
-     * config path
-     */
-    private $configPath;
-
-    /**
      * Construct
      *
      * @param String $path
      */
-    public function __construct($path) {
-        $this->configPath = $path;
-        $this->app = require $this->configPath . '/App.php';
+    public function __construct() {
+        $this->app = require CONFIG_PATH . '/app.php';
     }
 
     /**
@@ -47,7 +41,7 @@ class Rest {
         $this->bindServiceProvider($this->app['providers']);
 
         Services::exceptions()
-            ->initialize();
+            ->initialize($this->app['outputCallbackException']);
 
         $this->bootstrapEnvironment();
     }
@@ -60,7 +54,7 @@ class Rest {
     public function run() {
         $router = Services::router();
         $router->addPlaceholders($this->app['placeholders']);
-        require $this->configPath . '/Routes.php';
+        require CONFIG_PATH . '/routes.php';
 
         list($controller, $method, $params) = $router->dispatch();
 
