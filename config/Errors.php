@@ -1,10 +1,10 @@
-<?php namespace App\Config;
+<?php
 
 class Errors {
 
     /****** 1 系统级错误, 00/01 (lua/php), 00 具体错误, xxx HTTP status ******/
     // error_reporting 引发的错误, E_ERROR、 E_PARSE、 E_CORE_ERROR、 E_CORE_WARNING、 E_COMPILE_ERROR、 E_COMPILE_WARNING 除外
-    const INTERNAL_ERROR = '50010100 system error';
+    const INTERNAL_ERROR = '500 10100 system error';
 
     const JSON_ENCODE_ERROR = '50010101 json encode error';
 

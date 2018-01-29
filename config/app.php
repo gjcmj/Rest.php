@@ -24,6 +24,11 @@ return [
         }
     ],
 
+    // Exception Response Format
+    'outputCallbackException' => function($code, $message) {
+        return ['code' => $code, 'message' => $message];
+    },
+
     // Router placeholders
     'placeholders' => [
         ':id'  => '[0-9]+'
