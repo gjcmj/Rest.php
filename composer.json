@@ -1,11 +1,8 @@
 {
     "name": "gjcmj/Rest.php",
-
-    "description": "Restful Api Framework",
-
+    "description": "Rest api micro PHP 7 framework",
     "version": "1.0.0",
-
-    "license": "BSD-4-Clause",
+    "license": "MIT",
 
     "authors": [
         {
@@ -21,5 +18,11 @@
         },
 
         "files": ["support/Helpers/common.php"]
+    },
+
+    "scripts": {
+        "post-autoload-dump": [
+            "for s in $(find . -name '*.php'); do php -l $s; done"
+        ]
     }
 }
