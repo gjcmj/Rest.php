@@ -55,8 +55,6 @@ class Exceptions {
         $statusCode = $this->determineCode($code) ;
         $message = $e->getMessage();
 
-        var_dump($e);
-
         if($code == 0) {
             error_log($message . ' in '
                 . $e->getFile()

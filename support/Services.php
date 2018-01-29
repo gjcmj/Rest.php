@@ -36,7 +36,7 @@ class Services {
      * Bind 
      *
      * @param String $name
-     * @param Mix $resolver
+     * @param mixed $resolver
      * @return void
      */
     public static function bind($name, $resolver) {

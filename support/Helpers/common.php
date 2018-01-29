@@ -1,4 +1,6 @@
 <?php
+use Rest\Services;
+
 /**
  * Rest api micro PHP 7 framework
  *
@@ -25,6 +27,13 @@ if(!function_exists('throw_exception')) {
     }
 }
 
+if (!function_exists('service')) {
+
+    function service(string $name, $share) {
+        return Services::$name($share);
+    }
+}
+
 /**
  * xss 攻击过滤(仅做了strip_tags)
  * 
@@ -35,18 +44,5 @@ if(!function_exists('xss_clean')){
 
     function xss_clean(&$data) {
         return strip_tags(trim($data));
-    }
-}
-
-/**
- * 获得系统毫秒时间戳
- *
- * @return float
- */
-if(!function_exists('getMillisecond')) {
-
-    function getMillisecond() {
-        list($t1, $t2) = explode(' ', microtime());
-        return (float) sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
     }
 }

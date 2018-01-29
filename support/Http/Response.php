@@ -21,9 +21,11 @@ class Response {
     const HTTP_VERSION = 1.1;
 
     /**
-     * @var array HTTP response codes and messages
+     * HTTP status codes
+     *
+     * @var array
      */
-    private static $_messages = [
+    protected static $messages = [
 
         //Informational 1xx
         100 => 'Continue',
@@ -83,46 +85,44 @@ class Response {
     /**
      * @var int HTTP status code
      */
-    private $_status;
+    protected $status;
 
     /**
      * @var array HTTP headers
      */
-    private $_headers = array();
+    protected $headers = array();
 
     /**
-     * @var Content of HTTP response body
+     * json encode options
+     *
+     * @var int 
      */
-    private $_body;
+    protected $jsonEncodeOptions;
 
     /**
-     * @var  json_encode options
+     * json packet format
+     *
+     * @var int
      */
-    private $_jsonEncodeOptions = null;
-
-    /**
-     * @var body json packet
-     */
-    private $_bodyJsonPacket = true;
+    protected $format;
 
     /**
      * Construct
      *
-     * @param array $_headers HTTP headers
-     * @param int   $_status  HTTP status code
+     * @param array $headers HTTP headers
+     * @param int   $status  HTTP status code
      * @param callable $finalizeFunc Output callback
      */
-    public function __construct($status = 200, array $headers = [], $body = '') {
-        
-        $this->_jsonEncodeOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    public function __construct($status = 200, array $headers = [], $format = 0) {
+        $this->jsonEncodeOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
-        $this->_status = $status;
+        $this->status = $status;
 
         foreach ($headers as $header) {
             $this->setHeader($header);
         }
 
-        $this->_body = $body;
+        $this->format = $format;
     }
 
     /**
@@ -130,12 +130,25 @@ class Response {
      *
      * set body
      * 
-     * @param string|array|object|null $_body Content of HTTP response body
+     * @param string|array|object|null $body Content of HTTP response body
      * @return none
      */
-    public function write($body, $bodyJsonPacket = true) {
-        $this->_body = $body;
-        $this->_bodyJsonPacket = $bodyJsonPacket;
+    public function write($body, $isJsonPacket = true) {
+        list($status, $headers) = $this->finalize();
+
+        // status
+        header(sprintf('HTTP/%s %s', self::HTTP_VERSION, $this->getMessageForCode($status)));
+
+        // headers
+        foreach ($headers as $header) {
+            header($header[0], $header[1]);
+        }
+
+        // format
+        !$this->format || $this->setJsonEncodeOptions($this->getJsonEncodeOptions() | JSON_PRETTY_PRINT);
+
+        // body
+        echo $isJsonPacket ? $this->json_packet($body) : $body;
     }
 
     /**
@@ -147,7 +160,7 @@ class Response {
      * @return this
      */
     public function setStatus($status) {
-        $this->_status = $status;
+        $this->status = $status;
         return $this;
     }
 
@@ -160,6 +173,9 @@ class Response {
      * @return void
      */
     public function cache($times = 600) {
+        // TODO Etag
+
+        // Last Modified
         $this->setHeader('Last-Modified: ' . gmdate("D, d M Y H:i:s", time()) . ' GMT')
             ->setHeader('Cache-Control: public, max-age=' . (is_numeric($times) ? $times : 0));
     }
@@ -172,27 +188,31 @@ class Response {
      * @return this
      */
     public function setHeader($header, $replace = true) {
-        $this->_headers[] = [$header, $replace];
+        $this->headers[] = [$header, $replace];
         return $this;
     }
 
     /**
      * Finalize
      *
-     * @return [status, headers, body]
+     * @return [status, headers]
      */
     public function finalize() {
-        return [$this->_status, $this->_headers, $this->_body];
+        return [$this->status, $this->headers];
     }
 
     /**
      * Get message for HTTP status code
      *
-     * @param  int $_status
-     * @return string|null
+     * @param  int $status
+     * @return string
+     * @throw ErrorException
      */
     public static function getMessageForCode($status) {
-        return isset(self::$_messages[$status]) ? self::$_messages[$status] : null;
+        if(isset(self::$messages[$status]))
+            return $status . ' ' . self::$messages[$status];
+
+        throw new ErrorException('Unknow Http Status '. $status, 500);
     }
 
     /**
@@ -200,13 +220,15 @@ class Response {
      *
      * @param string|array $value
      * @return json
+     * @throw ErrorException
      */
-    public function json_packet($value, $code = 0) {
+    public function json_packet($value) {
+        $value = json_encode($value, $this->jsonEncodeOptions);
 
-        $value = ($code == 0) ? json_encode($value, $this->_jsonEncodeOptions) : json_encode(['code' => $code, 'message' => $value], $this->_jsonEncodeOptions);
+        if(json_last_error() !== JSON_ERROR_NONE)
+            throw new ErrorException(json_last_error_msg(), 500);
 
-        return json_last_error() == JSON_ERROR_NONE ? $value : 
-            sprintf('{"code" : %s, "message" : %s}', substr(Error::JSON_ENCODE_ERROR, 0, 8), substr(Error::JSON_ENCODE_ERROR, 9));
+        return $value;
     }
 
     /**
@@ -218,7 +240,7 @@ class Response {
      * @return this
      */ 
     public function setJsonEncodeOptions($options) {
-        $this->_jsonEncodeOptions = $options;
+        $this->jsonEncodeOptions = $options;
         return $this;
     }
 
@@ -228,24 +250,6 @@ class Response {
      * @return int
      */
     public function getJsonEncodeOptions() {
-        return $this->_jsonEncodeOptions;
-    }
-
-    /**
-     * get body json packet
-     *
-     * @return boolean
-     */
-    public function getBodyJsonPacket() {
-        return $this->_bodyJsonPacket;
-    }
-
-    /**
-     * get body
-     *
-     * @return String
-     */
-    public function getBody() {
-        return $this->_body;
+        return $this->jsonEncodeOptions;
     }
 }
