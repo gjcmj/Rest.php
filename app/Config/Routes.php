@@ -1,5 +1,3 @@
 <?php
 
-$router->get('/(:id?)', 'App\Controllers\Demo@index');
-
-$router->get('/search/(:keyword?)', 'App\Controllers\Search@index');
+$router->get('/(:id)/name/(:all?)', 'App\Demo\DemoController@index');
