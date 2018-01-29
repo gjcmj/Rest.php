@@ -11,7 +11,8 @@ return [
         },
 
         'response' => function() {
-            return new \Rest\Http\Response(200, ['Content-type: application/json;charset=utf-8']);
+            return new \Rest\Http\Response(200, ['Content-type: application/json;charset=utf-8'],
+                Services::request()->params('format'));
         },
 
         'router' => function() {
