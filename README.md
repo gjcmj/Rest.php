@@ -148,7 +148,7 @@ GET路由
 		
 		/**
      	 * 自动注入 App\Demo\DemoModel 实例, 无需显示 new 对象
-        */
+         */
     	public function __construct(DemoModel $model) {
        	$this->model = $model;
     	}
