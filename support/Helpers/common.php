@@ -22,8 +22,7 @@ use Rest\Services;
 if(!function_exists('throw_exception')) {
 
     function throw_exception($message) {
-        list($code, $msg) = [substr($message, 0, 8), substr($message, 9)];
-        throw new ErrorException($msg, $code);
+        throw new ErrorException($message, substr($message, 0, 3));
     }
 }
 

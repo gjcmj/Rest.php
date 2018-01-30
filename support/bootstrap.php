@@ -1,6 +1,6 @@
 <?php
 define('BASE_PATH', __DIR__);
-define('CONFIG_PATH', BASE_PATH . '/../config');
+define('CONFIG_PATH', BASE_PATH . '/../app/Config');
 
 // Autoload
 require BASE_PATH . '/../vendor/autoload.php';

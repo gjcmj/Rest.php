@@ -31,7 +31,7 @@ class Exceptions {
 
     /**
      * Construct
-     *
+     
      * @param \Rest\Http\Response
      */
     public function __construct(Response $response) {
@@ -74,7 +74,7 @@ class Exceptions {
 
         $this->response
             ->setStatus($statusCode)
-            ->write($this->outputCallback ? $this->outputCallback($code, $message) : $message);
+            ->write($this->outputCallback ? ($this->outputCallback)($message) : $message);
 
         exit(1);
     }

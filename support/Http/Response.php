@@ -133,7 +133,7 @@ class Response {
      * @param string|array|object|null $body Content of HTTP response body
      * @return none
      */
-    public function write($body, $isJsonPacket = true) {
+    public function write($body) {
         list($status, $headers) = $this->finalize();
 
         // status
@@ -148,7 +148,7 @@ class Response {
         !$this->format || $this->setJsonEncodeOptions($this->getJsonEncodeOptions() | JSON_PRETTY_PRINT);
 
         // body
-        echo $isJsonPacket ? $this->json_packet($body) : $body;
+        echo $this->json_packet($body);
     }
 
     /**

@@ -127,7 +127,7 @@ class Router {
             }
         }
 
-        throw new \ErrorException("Router [$uri] not found", 404);
+        throw new \ErrorException("Router $uri not found", 404);
     }
 
     /**
