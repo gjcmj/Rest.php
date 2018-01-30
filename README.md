@@ -16,7 +16,7 @@
 
 ### Install
 	
-	composer create-project gjcmj/Rest.php path 1.0.0
+	composer create-project gjcmj/rest.php path 1.0.0
 
 ### Config
 
