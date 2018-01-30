@@ -225,7 +225,7 @@ uid 必填, 以 decode_id 回调过滤, 此回调函数可在助手函数中自�
 	
 		public function index($id, $name) {
         	
-        	$this->response->write(['id' => $id, 'name' => $name]);
+            $this->response->write(['id' => $id, 'name' => $name]);
    		}
 	}
 	
@@ -304,6 +304,28 @@ Set Json encode options
             return new \Rest\Exceptions(Services::response());
         }
     ]
+
+自动绑定服务
+
+DemoController, DemoModel 均自动绑定服务并注入相关服务
+
+    <?php namespace App\Demo;
+
+    use App\Config\Errors;
+    use Rest\Controller;
+
+    class DemoController extends Controller {
+
+        private $model;
+
+        /**
+         * 自动注入(仅在构造器部分)  App\Demo\DemoModel 实例
+         */
+        public function __construct(DemoModel $model) {
+            $this->model = $model;
+        }
+        ...
+    }
     
 获取服务类实例
 
