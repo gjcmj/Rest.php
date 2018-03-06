@@ -1,13 +1,6 @@
 <?php namespace Rest\Http;
 
 /**
- * Rest api micro PHP 7 framework
- *
- * @package Rest
- * @version 1.0.0
- */
-
-/**
  * HTTP Request
  * 
  * 仅支持 GET, POST, PUT, DELETE 请求
@@ -78,6 +71,15 @@ class Request {
      */
     public function getMethod() {
         return $_SERVER['REQUEST_METHOD'];
+    }
+
+    /**
+     * GET URL
+     *
+     * @return string
+     */
+    public  function getPath(): string {
+        return $_SERVER['REQUEST_URI'];
     }
 
     /**
@@ -168,7 +170,7 @@ class Request {
      * @return array|string|null
      */
     protected function get($key = null, $default = null) {
-        mb_parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $arr);
+        mb_parse_str(parse_url($this->getPath(), PHP_URL_QUERY), $arr);
 
         return $this->fetch_from_array($arr, $key, $default);
     }

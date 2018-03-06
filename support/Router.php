@@ -1,11 +1,6 @@
 <?php namespace Rest;
 
-/**
- * Rest api micro PHP 7 framework
- *
- * @package Rest
- * @version 1.0.0
- */
+use Closure;
 
 /**
  * Router
@@ -47,8 +42,48 @@ class Router {
      */
     protected $methods = [];
 
+    /**
+     * All of the short-hand keys for middlewares.
+     *
+     * @var array
+     */
+    protected $middleware = [];
 
-    public function __construct() {}
+    /**
+     * All of the middleware groups
+     * 
+     * @var array
+     */
+    protected $middlewareGroups = [];
+
+
+    /**
+     * Middleware stack
+     *
+     * @var array
+     */
+    protected $stack = [];
+
+    /**
+     * Middleware group stack
+     *
+     * @var array
+     */
+    protected $groupStack = [];
+
+    /**
+     * Construct
+     *
+     * @param array $placeholders
+     * @param array $middleware
+     * @param array $middlewareGroups
+     */
+    public function __construct(array $placeholders, array $middleware, array $middlewareGroups) {
+        $this->addPlaceholders($placeholders);
+
+        $this->middleware = $middleware;
+        $this->middlewareGroups = $middlewareGroups;
+    }
 
     /**
      * Request Method:
@@ -58,22 +93,69 @@ class Router {
      * - DELETE
      * - OPTIONS
      *
+     * @return mixed
+     */
+    public function __call($method, $params) {
+        if($method == 'middleware') {
+            return $this->middleware($params);
+        }
+
+        if($method == 'match') {
+            $uri = $params[1];
+            $methods = array_map('strtoupper', $params[0]);
+            $callback = $params[2];
+        } else {
+            $uri = $params[0];
+            $methods = strtoupper($method);
+            $callback = $params[1];
+        }
+        array_push($this->routes, $uri);
+        array_push($this->methods, $methods);
+        array_push($this->callbacks, $callback);
+
+        if(!empty($this->groupStack)) {
+            $this->stack[count($this->routes) - 1] = $this->groupStack;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Handle middleware
+     *
+     * @param array $params
      * @return void
      */
-        public function __call($method, $params) {
-            if($method == 'match') {
-                $uri = $params[1];
-                $methods = array_map('strtoupper', $params[0]);
-                $callback = $params[2];
-            } else {
-                $uri = $params[0];
-                $methods = strtoupper($method);
-                $callback = $params[1];
-            }
-            array_push($this->routes, $uri);
-            array_push($this->methods, $methods);
-            array_push($this->callbacks, $callback);
+    private function middleware(array $params) {
+        $arr = [];
+        foreach($params as $key) {
+            isset($this->middleware[$key]) && array_push($arr, $this->middleware[$key]);
         }
+
+        $index = count($this->routes) - 1;
+        $this->stack[$index] = empty($this->groupStack) ? $arr : array_merge($this->groupStack, $arr);
+    }
+
+    /**
+     * Create a route group with shared attributes
+     *
+     * @param array $attr
+     * @param Closure $routes
+     * @return void
+     */
+    public function group(array $attr, Closure $routes) {
+        $arr = [];
+
+        foreach($attr as $key) {
+            array_push($arr, $this->middlewareGroups[$key] ?? []);
+        }
+
+        $this->groupStack = array_merge(...$arr);
+
+        $routes($this);
+
+        $this->groupStack = [];
+    }
 
     /**
      * Merge Placeholder
@@ -91,12 +173,13 @@ class Router {
      *  - Controller
      *  - Method
      *  - Params
+     *  - Middleware
      *
      * @return array
      * @throw \ErrorException
      */
-    public function dispatch() {
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    public function dispatch($uri) {
+        $uri = parse_url($uri, PHP_URL_PATH);
         $method = $_SERVER['REQUEST_METHOD'];
 
         $placeholders = array_keys($this->placeholders);
@@ -144,7 +227,7 @@ class Router {
 
             array_shift($params);
             $result = explode('@',$this->callbacks[$index]);
-            array_push($result, $params);
+            array_push($result, $params, $this->stack[$index] ?? []);
             return $result;
         }
 

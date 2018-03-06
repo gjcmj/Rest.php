@@ -3,13 +3,6 @@
 use Rest\Http\Response;
 
 /**
- * Rest api micro PHP 7 framework
- *
- * @package Rest
- * @version 1.0.0
- */
-
-/**
  * Exceptions
  * 
  * @package Rest
@@ -74,7 +67,8 @@ class Exceptions {
 
         $this->response
             ->setStatus($statusCode)
-            ->write($this->outputCallback ? ($this->outputCallback)($message) : $message);
+            ->write($this->outputCallback ? ($this->outputCallback)($message) : $message)
+            ->send();
 
         exit(1);
     }

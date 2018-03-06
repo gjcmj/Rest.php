@@ -1,13 +1,6 @@
 <?php namespace Rest;
 
 /**
- * Rest api micro PHP 7 framework
- *
- * @package Rest
- * @version 1.0.0
- */
-
-/**
  * Model
  *
  * @package Rest

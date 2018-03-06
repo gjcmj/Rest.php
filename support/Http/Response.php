@@ -1,13 +1,6 @@
 <?php namespace Rest\Http;
 
 /**
- * Rest api micro PHP 7 framework
- *
- * @package Rest
- * @version 1.0.0
- */
-
-/**
  * HTTP Response
  * 
  * @package Rest\Http
@@ -83,24 +76,41 @@ class Response {
     ];
 
     /**
-     * @var int HTTP status code
+     * HTTP status code
+     *
+     * @var int 
      */
     protected $status;
 
     /**
-     * @var array HTTP headers
+     * Http Body
+     *
+     * @var mixed
+     */
+    protected $body;
+
+    /**
+     * HTTP headers
+     *
+     * @var array      
      */
     protected $headers = array();
 
     /**
-     * json encode options
+     * Is to json packet
+     * @var boolean
+     */
+    protected $isJsonPacket = true;
+
+    /**
+     * Json encode options
      *
      * @var int 
      */
     protected $jsonEncodeOptions;
 
     /**
-     * json packet format
+     * Json packet format
      *
      * @var int
      */
@@ -126,6 +136,20 @@ class Response {
     }
 
     /**
+     * Set Body
+     *
+     * @param mixed $body
+     * @param bool  $isJsonPacket
+     * @return Rest\Response
+     */
+    public function write($body, $isJsonPacket = true) {
+        $this->body = $body;
+        $this->isJsonPacket = $isJsonPacket;
+
+        return $this;
+    }
+
+    /**
      * Write
      *
      * set body
@@ -133,8 +157,8 @@ class Response {
      * @param string|array|object|null $body Content of HTTP response body
      * @return none
      */
-    public function write($body) {
-        list($status, $headers) = $this->finalize();
+    public function send() {
+        list($status, $headers, $body) = $this->finalize();
 
         // status
         header(sprintf('HTTP/%s %s', self::HTTP_VERSION, $this->getMessageForCode($status)));
@@ -148,7 +172,7 @@ class Response {
         !$this->format || $this->setJsonEncodeOptions($this->getJsonEncodeOptions() | JSON_PRETTY_PRINT);
 
         // body
-        echo $this->json_packet($body);
+        echo $this->isJsonPacket ? $this->json_packet($body) : $body;
     }
 
     /**
@@ -193,12 +217,23 @@ class Response {
     }
 
     /**
+     * Set or unset to json Packet
+     *
+     * @param bool $flag
+     * @return Rest\Response
+     */
+    public function isJsonPacket($flag = true) {
+        $this->isJsonPacket($flag);
+        return $this;
+    }
+
+    /**
      * Finalize
      *
      * @return [status, headers]
      */
     public function finalize() {
-        return [$this->status, $this->headers];
+        return [$this->status, $this->headers, $this->body];
     }
 
     /**
@@ -223,6 +258,9 @@ class Response {
      * @throw ErrorException
      */
     public function json_packet($value) {
+        if(is_null($value))
+            return '';
+
         $value = json_encode($value, $this->jsonEncodeOptions);
 
         if(json_last_error() !== JSON_ERROR_NONE)
