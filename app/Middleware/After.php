@@ -3,12 +3,13 @@
 use Closure;
 use Rest\Http\Request;
 
-class T2 {
+class After {
 
     public function handle(Request $request, Closure $next) {
 
-        echo '2';
         $response = $next($request);
+
+        // 执行动作
 
         return $response;
     }

@@ -51,11 +51,9 @@ class Rest {
      * @return void
      */
     public function run() {
-        $body = $this->handle(Services::request());
+        $response = $this->handle(Services::request());
 
-        Services::response()
-            ->write($body)
-            ->send();
+        $response->send();
     }
 
     /**
@@ -71,8 +69,10 @@ class Rest {
             ->send($request)
             ->through(array_merge($this->config['middleware'], $middleware))
             ->then(function($passable) use ($controller, $method, $params) {
-                return Services::$controller()
+                $body = Services::$controller()
                     ->$method(...$params);
+
+                return Services::response()->write($body);
             });
     }
 

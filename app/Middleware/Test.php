@@ -8,10 +8,8 @@ class Test {
 
     public function handle(Request $request, Closure $next) {
 
-        echo 'test';
+        // coding
 
-        $response = $next($request);
-
-        return $response;
+        return $next($request);
     }
 }

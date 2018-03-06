@@ -3,14 +3,12 @@
 use Closure;
 use Rest\Http\Request;
 
-class T3 {
+class Before {
 
     public function handle(Request $request, Closure $next) {
 
-        echo '3';
-        echo $request->params('a');
-        $response = $next($request);
-
-        return $response;
+        // 执行动作
+        
+        return $next($request);
     }
 }

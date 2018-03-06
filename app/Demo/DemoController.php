@@ -19,4 +19,10 @@ class DemoController extends Controller {
 
         return $this->model->test($id, $name);
     }
+
+    public function group() {
+        return [
+            'example' => 'group'
+        ];
+    }
 }

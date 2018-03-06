@@ -27,15 +27,16 @@ return [
     ],
 
     'routeMiddleware' => [
-        't2' => \App\Middleware\T2::class,
-        't3' => \App\Middleware\T3::class,
+        'before' => \App\Middleware\Before::class,
+        'after' => \App\Middleware\After::class,
         'test' => \App\Middleware\Test::class
     ],
 
     'middlewareGroups' => [
         'auth' => [
             \App\Middleware\Test::class,
-            \App\Middleware\T2::class
+            \App\Middleware\Before::class,
+            \App\Middleware\After::class
         ]
     ]
 ];
