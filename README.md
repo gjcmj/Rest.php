@@ -110,10 +110,95 @@ GET路由
 	class DemoController extends Controller {
 	
 		public function index($id, $name) {
-			echo $id;
-			echo $name;
+            return [
+                'id'   => $id,
+                'name' => $name
+            ];
     	}
 	}
+
+### Middleware
+
+中间件提供一个便利的方式来过滤HTTP 请求, 例如, 验证请求合法化等
+
+    <?php namespace App\Middleware;
+
+    use Closure;
+    use Rest\Http\Request;
+    use App\Config\Error;
+    
+    class Before {
+    
+        public function handle(Request $request, Closure $next) {
+    
+	        $this->request->requireParams(['uid' , 'vid']) || throw_exception(Error::INVALID_PARAMETER);
+    
+            return $next($request);
+        }
+    }
+
+请求后执行一些后置操作
+
+    <?php namespace App\Middleware;
+
+    use Closure;
+    use Rest\Http\Request;
+    
+    class After {
+    
+        public function handle(Request $request, Closure $next) {
+    
+            $response = $next($request);
+
+                ...
+
+            $response->setHeader($header);
+    
+            return $response;
+        }
+    }
+
+注册中间件
+
+    中间件分三类，分别是全局中间件, 自定义中间件, 中间件组
+
+全局中间件(app/Config/app.php)
+
+每个HTTP 请求都会执行
+
+    'middleware' => [
+        \App\Middleware\Test::class
+    ]
+
+自定义中间件(指定)
+
+    'routeMiddleware' => [
+        'before' => \App\Middleware\Before::class,
+        'after' => \App\Middleware\After::class,
+        'test' => \App\Middleware\Test::class
+    ]
+
+定义后路由指派
+
+    $router->get('/(:id)/name/(:all?)', 'App\Demo\DemoController@index')->middleware('before', 'after');
+
+中间组
+
+    'middlewareGroups' => [
+        'auth' => [
+            \App\Middleware\Test::class,
+            \App\Middleware\Before::class,
+            \App\Middleware\After::class
+        ]
+    ]
+
+定义后路由指派
+
+    $router->group(['auth'], function($router) {
+
+        $router->get('/test', 'App\Demo\DemoController@group');
+
+    });
 
 ### Controller
 
@@ -131,7 +216,7 @@ GET路由
 		public function index($id, $name) {
 			
 			$name == 'test' || throw_exception(Errors::BAD_REQUEST);
-			echo $id;
+			return $id;
     	}
 	}
 	
@@ -154,9 +239,7 @@ GET路由
     	}
 	
 		public function index($id, $name) {
-        	$result = $this->model->test($id, $name);
-        	
-        	$this->response->write($result);
+        	return $this->model->test($id, $name);
    		}
 	}
 
@@ -176,7 +259,7 @@ GET路由
 			 * GET、POST、PUT、DELETE 等均用以下方式
 			 * $key 为参数名，$default 为默认值，如果$key 不存在或为空时
 			 */
-			echo $this->request->params($key, $default);
+			return $this->request->params($key, $default);
 		}
 	}
 	
@@ -225,7 +308,7 @@ uid 必填, 以 decode_id 回调过滤, 此回调函数可在助手函数中自�
 	
 		public function index($id, $name) {
         	
-            $this->response->write(['id' => $id, 'name' => $name]);
+            return ['id' => $id, 'name' => $name];
    		}
 	}
 	
@@ -235,20 +318,22 @@ uid 必填, 以 decode_id 回调过滤, 此回调函数可在助手函数中自�
 
 缓存
 	 
-	 // last-modify 方式，默认 10 分钟
-    $this->response->cache();
-    $this->response->write($result);
+	 // last-modify 方式，在 after 中间件默认 10 分钟
+    $response = $next($request);
+    $response->cache();
     
 自定义输出头
 
     // 相同的头, 默认后面会替换之前的
-    $this->response->setHeader($header, $replace = true);
+    // after 中间件
+    $response = $next($request);
+    $response->setHeader($header, $replace = true);
     
 Set Json encode options
 
  [http://php.net/manual/en/json.constants.php](http://php.net/manual/en/json.constants.php)
 
-	$this->response->setJsonEncodeOptions($options)
+	$response->setJsonEncodeOptions($options)
 
 ### Model
 
@@ -284,24 +369,11 @@ Set Json encode options
 	
 	Services::bind('response', 'Rest\Http\Response');
 	
-通过配置 Bind 服务 ( app/Config/app.php )
+通过配置 Bind 自定义服务 ( app/Config/app.php )
 
 	'providers' => [
-        'request' => function() {
-            return new \Rest\Http\Request;
-        },
-
-        'response' => function() {
-            return new \Rest\Http\Response(200, ['Content-type: application/json;charset=utf-8'],
-                Services::request()->params('format'));
-        },
-
-        'router' => function() {
-            return new \Rest\Router;
-        },
-
-        'exceptions' => function() {
-            return new \Rest\Exceptions(Services::response());
+        'test' => function() {
+            return new \App\test;
         }
     ]
 
@@ -387,7 +459,7 @@ DemoController, DemoModel 均自动绑定服务并注入相关服务
 		public function index($id, $name) {
 			
 			$name == 'test' || throw_exception(Errors::BAD_REQUEST);
-			echo $id;
+			return $id;
     	}
 	}
 

@@ -1,5 +1,4 @@
 <?php
-use Rest\Services;
 
 return [
     'timezone' => 'PRC',
