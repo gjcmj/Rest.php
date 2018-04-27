@@ -1,7 +1,7 @@
 {
     "name": "gjcmj/rest.php",
     "description": "Rest api micro PHP 7 framework",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": "MIT",
 
     "authors": [{
