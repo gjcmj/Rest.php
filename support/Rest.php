@@ -65,15 +65,31 @@ class Rest {
     public function handle($request) {
         list($controller, $method, $params, $middleware) = $this->dispatchToRouter($request);
 
-        return (new Pipeline())
-            ->send($request)
-            ->through(array_merge($this->config['middleware'], $middleware))
-            ->then(function($passable) use ($controller, $method, $params) {
+        return array_reduce(
+            array_reverse(array_merge($this->config['middleware'], $middleware)),
+
+            $this->carry(), 
+
+            function($passable) use ($controller, $method, $params) {
                 $body = Services::$controller()
                     ->$method(...$params);
 
                 return Services::response()->write($body);
-            });
+            }
+        )($request);
+    }
+
+    /**
+     * Get a Closure that represents a slice of the application onion
+     *
+     * @return \Closure
+     */
+    protected function carry() {
+        return function ($stack, $pipe) {
+            return function($request) use ($stack, $pipe) {
+                return Services::$pipe()->handle($request, $stack);
+            };
+        };
     }
 
     /**
